@@ -1,0 +1,282 @@
+<title>API Interview Prep</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap">
+<style>
+/* Layout: single-column card feed with sticky filter bar */
+:root {
+  --bg: #f8f7f4;
+  --bg2: #ffffff;
+  --fg: #1a1a1a;
+  --fg2: #555;
+  --border: #e4e2dd;
+  --accent: #2563eb;
+  --accent-bg: #eff4ff;
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --tag-bg: #f0f0ed;
+  --tag-fg: #444;
+  --flip-bg: #1e293b;
+  --flip-fg: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1117; --bg2: #1a1f2e; --fg: #e8eaf0; --fg2: #8b93a8;
+    --border: #2a3045; --accent: #60a5fa; --accent-bg: #1e2d4a;
+    --warn: #fbbf24; --warn-bg: #2a2000; --tag-bg: #252b3b; --tag-fg: #a0aabf;
+    --flip-bg: #0d1526; --flip-fg: #cbd5e1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1117; --bg2: #1a1f2e; --fg: #e8eaf0; --fg2: #8b93a8;
+  --border: #2a3045; --accent: #60a5fa; --accent-bg: #1e2d4a;
+  --warn: #fbbf24; --warn-bg: #2a2000; --tag-bg: #252b3b; --tag-fg: #a0aabf;
+  --flip-bg: #0d1526; --flip-fg: #cbd5e1;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left,0px));
+  padding-right: max(16px, env(safe-area-inset-right,0px));
+  padding-block: 0;
+}
+
+/* Header */
+.site-header {
+  position: sticky; top: env(safe-area-inset-top,0px); z-index: 20;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top,0px); background: var(--bg2); z-index: 21;
+}
+.header-inner { max-width: 780px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.site-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--fg) }
+.site-title span { color: var(--accent) }
+.badge { background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: .03em }
+.stats { margin-left: auto; font-size: 13px; color: var(--fg2); font-variant-numeric: tabular-nums }
+
+/* Filter bar */
+.filter-bar {
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding: 10px 20px; overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-bar::-webkit-scrollbar { display: none }
+.filter-inner { max-width: 780px; margin: 0 auto; display: flex; gap: 8px; align-items: center }
+.filter-btn {
+  background: var(--bg2); border: 1px solid var(--border); color: var(--fg2);
+  padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; transition: all .15s;
+}
+.filter-btn:hover { border-color: var(--accent); color: var(--accent) }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff }
+
+/* Main */
+.main { max-width: 780px; margin: 0 auto; padding-block: 24px; display: flex; flex-direction: column; gap: 12px }
+
+/* Card */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 22px;
+  box-shadow: var(--shadow); cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  perspective: 1000px;
+}
+.card:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.1), 0 8px 24px rgba(0,0,0,.06) }
+.card-inner { transition: transform .45s cubic-bezier(.4,0,.2,1); transform-style: preserve-3d; position: relative }
+.card.flipped .card-inner { transform: rotateY(180deg) }
+
+.card-front, .card-back {
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.card-back {
+  position: absolute; inset: 0;
+  transform: rotateY(180deg);
+  background: var(--flip-bg); border-radius: 8px; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 100%;
+}
+/* Reserve space so card doesn't collapse when flipped */
+.card-front { visibility: visible }
+.card.flipped .card-front { visibility: hidden }
+.card.flipped .card-back { position: relative; transform: none }
+.card.flipped .card-inner { transform: none }
+
+/* Simpler flip: just toggle visibility */
+.card:not(.flipped) .card-back { display: none }
+.card.flipped .card-front { display: none }
+.card.flipped .card-back { display: flex; position: relative; transform: none }
+
+/* Card front */
+.card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px }
+.card-num { font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--fg2); letter-spacing: .05em }
+.card-tag { background: var(--tag-bg); color: var(--tag-fg); font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; letter-spacing: .02em }
+.card-hint { margin-left: auto; font-size: 12px; color: var(--fg2) }
+
+.card-q { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600; color: var(--fg); line-height: 1.4; text-wrap: balance }
+
+/* Card back */
+.back-section { display: flex; flex-direction: column; gap: 6px }
+.back-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase }
+.back-label.green { color: #4ade80 }
+.back-label.amber { color: #fbbf24 }
+.back-text { font-size: 14px; line-height: 1.6; color: var(--flip-fg) }
+.back-flip-hint { font-size: 12px; color: #64748b; text-align: right; margin-top: 4px }
+
+/* Loading / empty */
+.loading { text-align: center; padding: 60px 20px; color: var(--fg2) }
+.loading-spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .8s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.empty { text-align: center; padding: 48px 20px; color: var(--fg2); font-size: 14px }
+.error-box { background: #fff1f1; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px; color: #b91c1c; font-size: 14px; max-width: 780px; margin: 24px auto }
+
+/* Progress */
+.progress-bar { background: var(--border); border-radius: 4px; height: 4px; margin-top: 8px; overflow: hidden }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s }
+
+@media (max-width: 480px) {
+  .site-header, .filter-bar { padding-left: 16px; padding-right: 16px }
+  .main { padding: 16px 0 }
+  .card { padding: 16px }
+}
+</style>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="site-title">API <span>Interview</span> Prep</div>
+    <div class="badge">Senior Dev</div>
+    <div class="stats" id="stats">Loading...</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+</header>
+
+<div class="filter-bar">
+  <div class="filter-inner" id="filters">
+    <button class="filter-btn active" data-group="all">Tất cả</button>
+  </div>
+</div>
+
+<main class="main" id="main">
+  <div class="loading">
+    <div class="loading-spinner"></div>
+    <div>Đang tải câu hỏi...</div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://kfrstanmloubbvfwhwpe.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Nhsb5_bNLIMEHb49kS59lA_czaUx';
+
+const groups = ['REST & HTTP','Thiết kế API','Bảo mật','Hiệu năng & Vận hành','Kiến trúc','Thực hành & Kiểm thử'];
+let allQuestions = [];
+let flipped = new Set();
+let currentGroup = 'all';
+
+async function loadQuestions() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/interview_questions?select=*&order=order.asc`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    allQuestions = await res.json();
+    if (!allQuestions.length) throw new Error('Chưa có dữ liệu — cần chạy setup.sql trước');
+    render();
+  } catch (e) {
+    document.getElementById('main').innerHTML = `
+      <div class="error-box">
+        ❌ <strong>Lỗi tải dữ liệu:</strong> ${e.message}<br><br>
+        👉 Hãy chạy file <code>setup.sql</code> trong <a href="https://supabase.com/dashboard/project/kfrstanmloubbvfwhwpe/sql/new" target="_blank">Supabase SQL Editor</a> trước.
+      </div>`;
+    document.getElementById('stats').textContent = 'Chưa có dữ liệu';
+  }
+}
+
+function buildFilters() {
+  const bar = document.getElementById('filters');
+  bar.innerHTML = `<button class="filter-btn ${currentGroup==='all'?'active':''}" data-group="all">Tất cả</button>`;
+  groups.forEach(g => {
+    const count = allQuestions.filter(q => q.group === g).length;
+    if (!count) return;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (currentGroup===g?' active':'');
+    btn.dataset.group = g;
+    btn.textContent = `${g} (${count})`;
+    bar.appendChild(btn);
+  });
+  bar.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => {
+    currentGroup = btn.dataset.group;
+    bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }));
+}
+
+function render() {
+  buildFilters();
+  const filtered = currentGroup === 'all' ? allQuestions : allQuestions.filter(q => q.group === currentGroup);
+  const total = allQuestions.length;
+  const seen = flipped.size;
+  document.getElementById('stats').textContent = `${seen}/${total} đã xem`;
+  document.getElementById('progress').style.width = `${total ? (seen/total*100) : 0}%`;
+
+  const main = document.getElementById('main');
+  if (!filtered.length) { main.innerHTML = '<div class="empty">Không có câu hỏi nào.</div>'; return; }
+
+  main.innerHTML = filtered.map(q => `
+    <div class="card${flipped.has(q.id)?' flipped':''}" data-id="${q.id}">
+      <div class="card-inner">
+        <div class="card-front">
+          <div class="card-meta">
+            <span class="card-num">Q${q.order.toString().padStart(2,'0')}</span>
+            <span class="card-tag">${q.group}</span>
+            <span class="card-hint">👆 Bấm để xem đáp án</span>
+          </div>
+          <div class="card-q">${escHtml(q.question)}</div>
+        </div>
+        <div class="card-back">
+          <div class="back-section">
+            <div class="back-label green">✅ Đáp án mong đợi</div>
+            <div class="back-text">${escHtml(q.expected)}</div>
+          </div>
+          <div class="back-section">
+            <div class="back-label amber">⚠️ Bẫy thường gặp</div>
+            <div class="back-text">${escHtml(q.trap)}</div>
+          </div>
+          <div class="back-flip-hint">👆 Bấm để quay lại câu hỏi</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  main.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      if (flipped.has(id)) flipped.delete(id); else flipped.add(id);
+      card.classList.toggle('flipped');
+      const seen = flipped.size;
+      document.getElementById('stats').textContent = `${seen}/${allQuestions.length} đã xem`;
+      document.getElementById('progress').style.width = `${allQuestions.length ? (seen/allQuestions.length*100) : 0}%`;
+    });
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadQuestions();
+</script>
